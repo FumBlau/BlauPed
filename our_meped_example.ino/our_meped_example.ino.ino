@@ -9,6 +9,7 @@
 //
 //==========================================================================================
 
+#include <Arduino.h>
 #include <IRremote.h> // include IR Remote library
 #include <Servo.h>    // include servo library
 
@@ -21,30 +22,30 @@
 #define CM 1
 
 // Define IR Remote Button Codes
-#define irUp  16615543
-#define irDown 16619623
-#define irRight 16607383
-#define irLeft 16591063
-#define irOK 16623703
-#define ir1 16580863
-#define ir2 16613503
-#define ir3 16597183
-#define ir4 16589023
-#define ir5 16621663
-#define ir6 16605343
-#define ir7 16584943
-#define ir8 16617583
-#define ir9 16601263
-#define ir0 16625743
-#define irStar 16593103
-#define irPound 16609423
+#define irUp  5316027//16615543
+#define irDown 2747854299//16619623
+#define irRight 553536955//16607383
+#define irLeft 1386468383 //16591063
+#define irOK 3622325019 //16623703
+#define ir1 2534850111//16580863
+#define ir2 1033561079 //16613503
+#define ir3 1635910171//16597183
+#define ir4 2351064443//16589023
+#define ir5 1217346747//16621663
+#define ir6 71952287//16605343
+#define ir7 851901943//16584943
+#define ir8 465573243//16617583
+#define ir9 1053031451//16601263
+#define ir0 3238126971//16625743
+#define irStar 4034314555//16593103
+#define irPound 3855596927//16609423
 #define irRepeat 4294967295
 
 // calibration
-int da =  -12,  // Left Front Pivot
-    db =   10,  // Left Back Pivot
-    dc =  -18,  // Right Back Pivot
-    dd =   12;  // Right Front Pivot
+int da =  0,  // Left Front Pivot
+    db =   0,  // Left Back Pivot
+    dc =  0,  // Right Back Pivot
+    dd =   0;  // Right Front Pivot
 
 // servo initial positions + calibration
 int a90  = (90  + da),
@@ -82,7 +83,7 @@ int b    = 0;
 int l    = 0;
 int r    = 0;
 int spd  = 3;  // Speed of walking motion, larger the number, the slower the speed
-int high = 0;   // How high the robot is standing
+int high = 10;   // How high the robot is standing
 
 // Define 8 Servos
 Servo myServo1; // Front Left Pivot Servo
@@ -96,7 +97,7 @@ Servo myServo8; // Front Right Lift Servo
 
 // Set up IR Sensor
 int irReceiver = 12;       // Use pin D12 for IR Sensor
-IRrecv irrecv2(irReceiver); // create a new instance of the IR Receiver
+IRrecv irrecv(irReceiver); // create a new instance of the IR Receiver
 decode_results results2;
 
 //==========================================================================================
@@ -118,7 +119,7 @@ void setup()
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
 
-  irrecv2.enableIRIn(); //start the receiver
+  irrecv.enableIRIn(); //start the receiver
 
   Serial.begin (9600);
 
@@ -135,129 +136,137 @@ void loop()
   long distance = 0;
 
   center_servos();  // Center all servos
-  high = 15;        // Set hight to 15
+  high = 8;        // Set hight to 15
   spd = 3;          // Set speed to 3
 
   while (1 == 1)    // Loop forever
   {
     distance = get_distance(INCH);
 
-    if (irrecv2.decode(&results2)) // If we have received an IR signal
+    if (irrecv.decode(&results2)) // If we have received an IR signal
     {
       value = results2.value;
       //Serial.print(value); Serial.println(" value");
 
-      if (value == irRepeat)
-        value = lastValue;
+      //if(value == irRepeat)value = lastValue;
 
-      switch (value)
-      {
-        case irUp:
-          lastValue = irUp;
-          Serial.println("Forward");
-          forward();
-          break;
+//      if(value == lastValue)delay(1);
+//      else
+//        {
+        switch (value)
+        {
+          case irUp:
+            lastValue = irUp;
+            forward();
+            Serial.println("Forward");
+            break;
+  
+          case irDown:
+            lastValue = irDown;
+            Serial.println("Back");
+            back();
+            break;
+  
+          case irRight:
+            lastValue = irRight;
+            Serial.println("Right");
+            turn_right();
+            break;
+  
+          case irLeft:
+            lastValue = irLeft;
+            Serial.println("Left");
+            turn_left();
+            break;
+  
+          case irOK:
+            lastValue = irOK;
+            Serial.println("Ok");
+            break;
+  
+          case ir1:
+            lastValue = ir1;
+            Serial.println("Bow");
+            bow();
+            break;
+  
+          case ir2:
+            lastValue = ir2;
+            Serial.println("Wave");
+            wave();
+            break;
+  
+          case ir3:
+            lastValue = ir3;
+            Serial.println("Increase Speed");
+            increase_speed();
+            break;
+  
+          case ir4:
+            lastValue = ir4;
+            forward();
+            forward();
+            forward();
+            center_servos();
+            Serial.println("4");
+            break;
+  
+          case ir5:
+            lastValue = ir5;
+            Serial.println("5");
+            break;
+  
+          case ir6:
+            lastValue = ir6;
+            Serial.println("Decrease Speed");
+            decrease_speed();
+            break;
+  
+          case ir7:
+            lastValue = ir7;
+            Serial.println("7");
+            break;
+  
+          case ir8:
+            lastValue = ir8;
+            Serial.println("Dance");
+            dance();
+            break;
+  
+          case ir9:
+            lastValue = ir9;
+            Serial.println("9");
+            break;
+  
+          case ir0:
+            lastValue = ir0;
+            Serial.println("Center Servos");
+            center_servos();
+            break;
+  
+          case irStar:
+            lastValue = irStar;
+            Serial.println("Trim Left");
+            trim_left();
+            break;
+  
+          case irPound:
+            lastValue = irPound;
+            Serial.println("Trim Right");
+            trim_right();
+            break;
+  
+          default:
+            Serial.print(value); Serial.println(" value");
+            break;
+        }
+  
+        irrecv.resume(); //next value
+        delay(5);  // Pause for 50ms before executing next movement
+        lastValue=value;
+        //}
 
-        case irDown:
-          lastValue = irDown;
-          Serial.println("Back");
-          back();
-          break;
-
-        case irRight:
-          lastValue = irRight;
-          Serial.println("Right");
-          turn_right();
-          break;
-
-        case irLeft:
-          lastValue = irLeft;
-          Serial.println("Left");
-          turn_left();
-          break;
-
-        case irOK:
-          lastValue = irOK;
-          Serial.println("Ok");
-          break;
-
-        case ir1:
-          lastValue = ir1;
-          Serial.println("Bow");
-          bow();
-          break;
-
-        case ir2:
-          lastValue = ir2;
-          Serial.println("Wave");
-          wave();
-          break;
-
-        case ir3:
-          lastValue = ir3;
-          Serial.println("Increase Speed");
-          increase_speed();
-          break;
-
-        case ir4:
-          lastValue = ir4;
-          Serial.println("4");
-          break;
-
-        case ir5:
-          lastValue = ir5;
-          Serial.println("5");
-          break;
-
-        case ir6:
-          lastValue = ir6;
-          Serial.println("Decrease Speed");
-          decrease_speed();
-          break;
-
-        case ir7:
-          lastValue = ir7;
-          Serial.println("7");
-          break;
-
-        case ir8:
-          lastValue = ir8;
-          Serial.println("Dance");
-          dance();
-          break;
-
-        case ir9:
-          lastValue = ir9;
-          Serial.println("9");
-          break;
-
-        case ir0:
-          lastValue = ir0;
-          Serial.println("Center Servos");
-          center_servos();
-          break;
-
-        case irStar:
-          lastValue = irStar;
-          Serial.println("Trim Left");
-          trim_left();
-          break;
-
-        case irPound:
-          lastValue = irPound;
-          Serial.println("Trim Right");
-          trim_right();
-          break;
-
-        default:
-          Serial.print(value); Serial.println(" value");
-          break;
-      }
-
-      irrecv2.resume(); //next value
-      delay(50);  // Pause for 50ms before executing next movement
-
-    }// if irrecv2.decode
+    }// if irrecv.decode
   }//while
 
 }//loop
@@ -411,14 +420,19 @@ void forward()
   // set servo positions and speeds needed to walk forward one step
   // (LFP,  LBP, RBP,  RFP, LFL, LBL, RBL, RFL, S1, S2, S3, S4)
   srv(a180, b0 , c120, d60, 42,  33,  33,  42,  1,  3,  1,  1);
-  srv( a90, b30, c90,  d30, 6,   33,  33,  42,  3,  1,  1,  1);
+   srv( a90, b30, c90,  d30, 6,   33,  33,  42,  3,  1,  1,  1);
   srv( a90, b30, c90,  d30, 42,  33,  33,  42,  3,  1,  1,  1);
   srv(a120, b60, c180, d0,  42,  33,  6,   42,  1,  1,  3,  1);
-  srv(a120, b60, c180, d0,  42,  33,  33,  42,  1,  1,  3,  1);
+   srv(a120, b60, c180, d0,  42,  33,  33,  42,  1,  1,  3,  1);
+ 
   srv(a150, b90, c150, d90, 42,  33,  33,  6,   1,  1,  1,  3);
+
   srv(a150, b90, c150, d90, 42,  33,  33,  42,  1,  1,  1,  3);
+
   srv(a180, b0,  c120, d60, 42,  6,   33,  42,  1,  3,  1,  1);
-  //srv(a180, b0,  c120, d60, 42,  15,  33,  42,  1,  3,  1,  1);
+
+//  srv(a180, b0,  c120, d60, 42,  15,  33,  42,  1,  3,  1,  1);
+
 
 }
 
@@ -723,3 +737,4 @@ long get_distance(bool unit)
   else
     return cm;
 }
+
